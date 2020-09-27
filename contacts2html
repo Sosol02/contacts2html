@@ -1,0 +1,56 @@
+#!/usr/bin/guile -s
+coding: utf-8
+!#
+
+(use-modules 
+    (ice-9 textual-ports)
+    (srfi srfi-1))
+
+(define (convert text)
+    (filter 
+        (lambda (l) 
+            (not 
+                (equal? l (list ""))))
+        (map 
+            (lambda (s) (string-split s #\,)) 
+            (string-split text #\newline))))
+
+(define (to-html lss)
+    (string-append
+        "<table>\n"
+        (fold
+            (lambda (ls acc)
+                (string-append
+                    acc
+                    "<tr>\n"
+                    (fold
+                        (lambda (x acc) (string-append acc "<td>" x "</td>\n"))
+                        ""
+                        ls)
+                    "</tr>\n"))
+            ""
+            lss)
+        "</table>\n"))
+
+(define (default-style)
+    "<style>
+    table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+        padding: 15px;
+    }
+    </style>")
+
+(let 
+    ((s 
+        (convert 
+            (get-string-all 
+                (current-input-port)))))
+    
+    #! (write s) !#
+    (display
+        (string-append
+            (default-style)
+            (to-html s)))
+)
+
